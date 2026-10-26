@@ -1,10 +1,12 @@
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext.jsx"
+import { useCart } from "../context/CartContext.jsx"
 
 function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const { cartCount } = useCart()
 
   const handleLogout = async () => {
     await logout()
@@ -59,6 +61,15 @@ function Navbar() {
           >
             <i className={`bi ${item.icon}`}></i>
             <span>{item.label}</span>
+
+            {item.path === "/cart" && cartCount > 0 && (
+              <span
+                className="cart-badge"
+                aria-label={`${cartCount} items in cart`}
+              >
+                {cartCount > 99 ? "99+" : cartCount}
+              </span>
+            )}
           </Link>
         ))}
       </div>
