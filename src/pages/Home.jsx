@@ -13,17 +13,17 @@ function Home() {
         <div className="hero-content">
           <span className="hero-badge">
             <i className="bi bi-stars"></i>
-            YOUR EVERYDAY SHOPPING DESTINATION
+            QUALITY SECOND-HAND LAPTOPS
           </span>
 
           <h1>
             Find Your Next
             <br />
-            <span>Favorite Thing.</span>
+            <span>Affordable Laptop.</span>
           </h1>
 
           <p>
-            Discover quality products at great prices.
+            Tested and reliable second-hand laptops at great prices.
             Everything you need, all in one place.
           </p>
 

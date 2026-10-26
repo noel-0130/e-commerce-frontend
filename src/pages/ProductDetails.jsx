@@ -81,7 +81,7 @@ function ProductDetails() {
 
         <div className="product-details-info">
           <span className="product-details-eyebrow">
-            SHOP EASE COLLECTION
+            NOEL SHOP COLLECTION
           </span>
 
           <h1>{product.name}</h1>

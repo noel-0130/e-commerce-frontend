@@ -47,7 +47,7 @@ function Navbar() {
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-logo">
-        ShopEase<span>.</span>
+        Noel Shop<span>.</span>
       </Link>
 
       <div className="navbar-links">
