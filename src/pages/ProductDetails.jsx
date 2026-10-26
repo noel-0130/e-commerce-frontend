@@ -1,14 +1,21 @@
-import { Link, useParams } from "react-router-dom"
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom"
 import { useState, useEffect } from "react"
 import { getProduct } from "../api/product.js"
 import { useCart } from "../context/CartContext.jsx"
+import { useAuth } from "../context/AuthContext.jsx"
+import { productImage } from "../utils/product.js"
 
 function ProductDetails() {
-  const { addToCart } = useCart()
+  const { addToCart, error: cartError } = useCart()
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
   const { id } = useParams()
-  const [product, setProduct] = useState([])
+
+  const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [added, setAdded] = useState(false)
 
   useEffect(() => {
     getProduct(id)
@@ -21,8 +28,17 @@ function ProductDetails() {
       .finally(() => {
         setLoading(false)
       })
-    }, [id])
+  }, [id])
 
+  const handleAddToCart = async () => {
+    if (!user) {
+      navigate("/login", { state: { from: location } })
+      return
+    }
+
+    const ok = await addToCart(product)
+    setAdded(ok)
+  }
 
   if (loading) {
     return <p>Loading product...</p>
@@ -55,10 +71,12 @@ function ProductDetails() {
 
       <section className="product-details-layout">
         <div className="product-details-image">
-          <img src={product.image} alt={product.name} />
-          <span className="product-details-category">
-            {product.category}
-          </span>
+          <img src={productImage(product)} alt={product.name} />
+          {product.category && (
+            <span className="product-details-category">
+              {product.category}
+            </span>
+          )}
         </div>
 
         <div className="product-details-info">
@@ -69,7 +87,7 @@ function ProductDetails() {
           <h1>{product.name}</h1>
 
           <div className="product-details-price">
-            ₱{product.price.toLocaleString("en-PH")}
+            ₱{Number(product.price).toLocaleString("en-PH")}
           </div>
 
           <p className="product-details-description">
@@ -97,7 +115,7 @@ function ProductDetails() {
               type="button"
               className="product-add-button"
               disabled={product.stock <= 0}
-              onClick={() => addToCart(product)}
+              onClick={handleAddToCart}
             >
               <i className="bi bi-cart-plus"></i>
               Add to Cart
@@ -108,6 +126,14 @@ function ProductDetails() {
               Back to Products
             </Link>
           </div>
+
+          {added && (
+            <p>
+              Added to cart! <Link to="/cart">View Cart</Link>
+            </p>
+          )}
+
+          {cartError && <p className="error-message">{cartError}</p>}
 
           <div className="product-details-benefits">
             <div>

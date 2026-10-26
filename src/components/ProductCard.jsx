@@ -1,16 +1,19 @@
 import { Link } from "react-router-dom"
+import { productImage } from "../utils/product.js"
 
 function ProductCard({ product }) {
   return (
     <article className="product-card">
       <div className="product-image-container">
         <img
-          src={product.image}
+          src={productImage(product)}
           alt={product.name}
           className="product-image"
         />
 
-        <span className="product-category">{product.category}</span>
+        {product.category && (
+          <span className="product-category">{product.category}</span>
+        )}
       </div>
 
       <div className="product-info">
@@ -22,7 +25,7 @@ function ProductCard({ product }) {
 
         <div className="product-card-footer">
           <span className="product-price">
-            ₱{product.price.toLocaleString("en-PH")}
+            ₱{Number(product.price).toLocaleString("en-PH")}
           </span>
 
           <Link

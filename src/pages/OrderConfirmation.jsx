@@ -1,21 +1,40 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import { getOrder } from "../api/orders.js"
 
 function OrderConfirmation() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const orderId = searchParams.get("order")
+
   const [order, setOrder] = useState(null)
+  const [loading, setLoading] = useState(Boolean(orderId))
 
   useEffect(() => {
-    const savedOrder = localStorage.getItem("lastOrder")
+    if (!orderId) return
 
-    if (savedOrder) {
-      try {
-        setOrder(JSON.parse(savedOrder))
-      } catch {
-        setOrder(null)
-      }
-    }
-  }, [])
+    getOrder(orderId)
+      .then(setOrder)
+      .catch(() => setOrder(null))
+      .finally(() => setLoading(false))
+  }, [orderId])
+
+  const formatPrice = (price) =>
+    Number(price || 0).toLocaleString("en-PH", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+
+  const formatStatus = (status) =>
+    status ? status.charAt(0).toUpperCase() + status.slice(1) : "Pending"
+
+  if (loading) {
+    return (
+      <div className="order-not-found">
+        <p>Loading order...</p>
+      </div>
+    )
+  }
 
   if (!order) {
     return (
@@ -24,9 +43,7 @@ function OrderConfirmation() {
 
         <h2>No Order Found</h2>
 
-        <p>
-          You haven't placed an order yet.
-        </p>
+        <p>We couldn't find that order.</p>
 
         <button
           className="confirmation-button"
@@ -54,65 +71,36 @@ function OrderConfirmation() {
         <div className="confirmation-order-number">
           <span>Order Number</span>
 
-          <strong>{order.orderNumber}</strong>
+          <strong>{order.order_number}</strong>
         </div>
 
         <div className="confirmation-status">
           <span>Order Status</span>
           <strong className="status-pending">
-            {order.status || "Pending"}
+            {formatStatus(order.status)}
           </strong>
         </div>
 
         <div className="confirmation-details">
           <h2>Order Details</h2>
 
-          {order.items?.map((item) => (
-            <div className="confirmation-item" key={item.id}>
+          {order.items.map((item, index) => (
+            <div
+              className="confirmation-item"
+              key={`${item.product_id}-${index}`}
+            >
               <div>
-                <strong>{item.title}</strong>
+                <strong>{item.name}</strong>
                 <p>Quantity: {item.quantity}</p>
               </div>
 
-              <span>
-                ₱{(
-                  Number(item.price) * Number(item.quantity)
-                ).toLocaleString("en-PH", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
+              <span>₱{formatPrice(item.subtotal)}</span>
             </div>
           ))}
 
-          <div className="confirmation-row">
-            <span>Subtotal</span>
-            <span>
-              ₱{Number(order.subtotal).toLocaleString("en-PH", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          </div>
-
-          <div className="confirmation-row">
-            <span>Shipping Fee</span>
-            <span>
-              ₱{Number(order.shippingFee).toLocaleString("en-PH", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          </div>
-
           <div className="confirmation-total">
             <span>Total Amount</span>
-            <strong>
-              ₱{Number(order.total).toLocaleString("en-PH", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </strong>
+            <strong>₱{formatPrice(order.total_amount)}</strong>
           </div>
         </div>
 
@@ -129,19 +117,12 @@ function OrderConfirmation() {
           <h2>Delivery Information</h2>
 
           <p>
-            <strong>{order.customer?.fullName}</strong>
+            <strong>{order.customer_name}</strong>
           </p>
 
-          <p>{order.customer?.phone}</p>
+          <p>{order.customer_email}</p>
 
-          <p>{order.customer?.address}</p>
-
-          <p>
-            {order.customer?.city}
-            {order.customer?.postalCode
-              ? `, ${order.customer.postalCode}`
-              : ""}
-          </p>
+          <p>{order.shipping_address}</p>
         </div>
 
         <button
@@ -151,11 +132,6 @@ function OrderConfirmation() {
           <i className="bi bi-bag"></i>
           Continue Shopping
         </button>
-
-        <p className="confirmation-note">
-          This is a demo order. Order information is currently saved
-          in your browser only.
-        </p>
       </section>
     </main>
   )

@@ -1,13 +1,15 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useCart } from "../context/CartContext"
+import { useAuth } from "../context/AuthContext"
 
 function Checkout() {
   const navigate = useNavigate()
-  const { cartItems, clearCart } = useCart()
+  const { cartItems, checkout, loading } = useCart()
+  const { user } = useAuth()
 
   const [formData, setFormData] = useState({
-    fullName: "",
+    fullName: user?.name || "",
     phone: "",
     address: "",
     city: "",
@@ -45,7 +47,7 @@ function Checkout() {
     }
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setError("")
 
@@ -82,60 +84,42 @@ function Checkout() {
       return
     }
 
-    const order = {
-      orderNumber: `ORD-${Date.now()}`,
-      customer: {
-        fullName: formData.fullName.trim(),
-        phone: formData.phone.trim(),
-        address: formData.address.trim(),
-        city: formData.city.trim(),
-        postalCode: formData.postalCode.trim(),
-      },
-      items: cartItems.map((item) => ({
-        ...item,
-        price: Number(item.price),
-        quantity: Number(item.quantity),
-      })),
-      subtotal,
-      shippingFee,
-      total,
-      paymentMethod: "COD",
-      paymentStatus: "Pending",
-      status: "Pending",
-      createdAt: new Date().toISOString(),
+    const customer = {
+      fullName: formData.fullName.trim(),
+      phone: formData.phone.trim(),
+      address: formData.address.trim(),
+      city: formData.city.trim(),
+      postalCode: formData.postalCode.trim(),
     }
 
     try {
       setIsSubmitting(true)
 
-      const existingOrders = JSON.parse(
-        localStorage.getItem("orderHistory") || "[]"
-      )
+      // Ang backend ang nagse-save ng order, nagbabawas ng stock, at nagbubura ng cart
+      const result = await checkout({
+        customer_name: customer.fullName,
+        customer_email: user.email,
+        shipping_address: `${customer.address}, ${customer.city} ${customer.postalCode} (Phone: ${customer.phone})`,
+      })
 
-      const updatedOrders = [order, ...existingOrders]
-
-      localStorage.setItem(
-        "orderHistory",
-        JSON.stringify(updatedOrders)
-      )
-
-      localStorage.setItem("lastOrder", JSON.stringify(order))
-
-      clearCart()
-
-      navigate("/order-confirmation")
+      navigate(`/order-confirmation?order=${result.order_id}`)
     } catch (err) {
-      console.error("Failed to save order:", err)
+      console.error("Checkout failed:", err)
 
-      setError(
-        err.message
-      )
-
+      setError(err.message)
       setIsSubmitting(false)
     }
   }
 
-  if (cartItems.length === 0) {
+  if (loading) {
+    return (
+      <div className="checkout-empty container">
+        <p>Loading checkout...</p>
+      </div>
+    )
+  }
+
+  if (cartItems.length === 0 && !isSubmitting) {
     return (
       <div className="checkout-empty container">
         <i className="bi bi-cart-x"></i>
@@ -318,7 +302,7 @@ function Checkout() {
                 key={item.id}
               >
                 <div className="checkout-item-info">
-                  <strong>{item.title}</strong>
+                  <strong>{item.name}</strong>
 
                   <small>
                     Quantity: {item.quantity}

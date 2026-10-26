@@ -1,78 +1,141 @@
 import { createContext, useContext, useEffect, useState } from "react"
+import { useAuth } from "./AuthContext.jsx"
+import {
+  createCart,
+  getCart,
+  addCartItem,
+  updateCartItem,
+  removeCartItem,
+  checkoutCart,
+} from "../api/cart.js"
+import { productImage } from "../utils/product.js"
 
 const CartContext = createContext()
 
+function mapItem(item) {
+  return {
+    id: item.product_id,
+    cartItemId: item.cart_item_id,
+    name: item.name,
+    price: Number(item.price),
+    stock: item.stock,
+    quantity: item.quantity,
+    image: productImage({ name: item.name }),
+  }
+}
+
 export function CartProvider({ children }) {
-  const [cartItems, setCartItems] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("cartItems")) || []
-    } catch {
-      return []
-    }
-  })
+  const { user } = useAuth()
+  const userId = user?.id
+
+  const [cart, setCart] = useState(null)
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
   useEffect(() => {
-    localStorage.setItem("cartItems", JSON.stringify(cartItems))
-  }, [cartItems])
+    if (!userId) return
 
-  const clearCart = () => {
-    setCartItems([])
+    let cancelled = false
+
+    async function init() {
+      setLoading(true)
+      try {
+        const newCart = await createCart()
+        const data = await getCart(newCart.id, newCart.token)
+        if (cancelled) return
+        setCart(newCart)
+        setItems(data.items.map(mapItem))
+        setError("")
+      } catch (e) {
+        if (!cancelled) setError(e.message)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    init()
+
+    return () => {
+      cancelled = true
+    }
+  }, [userId])
+
+  // Kapag naka-logout, walang laman ang cart
+  const cartItems = userId ? items : []
+
+  async function reload() {
+    const data = await getCart(cart.id, cart.token)
+    setItems(data.items.map(mapItem))
   }
 
-  function addToCart(product) {
-    setCartItems((currentItems) => {
-      const existingItem = currentItems.find(
-        (item) => item.id === product.id
-      )
+  async function run(action) {
+    if (!userId || !cart) {
+      setError("Please log in first.")
+      return false
+    }
+    try {
+      setError("")
+      await action()
+      return true
+    } catch (e) {
+      setError(e.message)
+      return false
+    }
+  }
 
-      if (existingItem) {
-        return currentItems.map((item) =>
-          item.id === product.id
-            ? {
-                ...item,
-                quantity: Math.min(item.quantity + 1, product.stock),
-              }
-            : item
-        )
+  const addToCart = (product) =>
+    run(async () => {
+      if (product.stock <= 0) throw new Error("Out of stock")
+
+      const existing = cartItems.find((i) => i.id === product.id)
+      if (existing && existing.quantity >= product.stock) {
+        throw new Error("Maximum available stock reached")
       }
 
-      if (product.stock <= 0) {
-        return currentItems
-      }
-
-      return [...currentItems, { ...product, quantity: 1 }]
+      await addCartItem(cart.id, cart.token, product.id, 1)
+      await reload()
     })
-  }
 
-  function removeFromCart(productId) {
-    setCartItems((currentItems) =>
-      currentItems.filter((item) => item.id !== productId)
-    )
-  }
+  const removeFromCart = (productId) =>
+    run(async () => {
+      const item = cartItems.find((i) => i.id === productId)
+      if (!item) return
+      await removeCartItem(cart.id, cart.token, item.cartItemId)
+      await reload()
+    })
 
-  function updateQuantity(productId, quantity) {
-    setCartItems((currentItems) =>
-      currentItems.map((item) =>
-        item.id === productId
-          ? {
-              ...item,
-              quantity: Math.max(
-                1,
-                Math.min(Number(quantity) || 1, item.stock)
-              ),
-            }
-          : item
+  const updateQuantity = (productId, quantity) =>
+    run(async () => {
+      const item = cartItems.find((i) => i.id === productId)
+      if (!item) return
+
+      const qty = Math.max(1, Math.min(Number(quantity) || 1, item.stock))
+
+      setItems((current) =>
+        current.map((i) =>
+          i.id === productId ? { ...i, quantity: qty } : i
+        )
       )
-    )
+
+      try {
+        await updateCartItem(cart.id, cart.token, item.cartItemId, qty)
+      } catch (e) {
+        await reload()
+        throw e
+      }
+    })
+
+  async function checkout(customer) {
+    if (!cart) throw new Error("Please log in first.")
+    const result = await checkoutCart(cart.id, cart.token, customer)
+    setItems([])
+    return result
   }
 
-  const cartCount = cartItems.reduce(
-    (total, item) => total + item.quantity,
-    0
-  )
-
+  const cartCount = cartItems.reduce((total, i) => total + i.quantity, 0)
   const cartTotal = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
+    (total, i) => total + i.price * i.quantity,
     0
   )
 
@@ -82,10 +145,12 @@ export function CartProvider({ children }) {
         cartItems,
         cartCount,
         cartTotal,
+        loading: userId ? loading : false,
+        error,
         addToCart,
         removeFromCart,
         updateQuantity,
-        clearCart
+        checkout,
       }}
     >
       {children}

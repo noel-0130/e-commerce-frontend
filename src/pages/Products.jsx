@@ -18,7 +18,7 @@ function Products() {
     .finally(() => {
       setLoading(false)
     })
-  })
+  }, [])
 
   return (
     <main className="products-page">
@@ -27,20 +27,37 @@ function Products() {
         <h1>Discover Our Products</h1>
         <p>Find the perfect products for your everyday needs.</p>
       </section>
+
       <section className="products-section">
         <div className="products-toolbar">
           <h2>All Products</h2>
           <span>{products.length} products available</span>
         </div>
-        
+
         {loading && <p>Loading products...</p>}
 
-        {error && <p className="error-message">{error}</p>}
+        {error && (
+          <div className="error-message">
+            <p>⚠️ Failed to load products.</p>
+            <p>{error}</p>
 
-        {!loading && !error && (
+            <button onClick={() => window.location.reload()}>
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && products.length === 0 && (
+          <p>No products available.</p>
+        )}
+
+        {!loading && !error && products.length > 0 && (
           <div className="products-grid">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+              />
             ))}
           </div>
         )}

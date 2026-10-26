@@ -1,6 +1,5 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useCart } from "../context/CartContext.jsx"
-import { useNavigate } from "react-router-dom"
 
 function Cart() {
   const navigate = useNavigate()
@@ -11,7 +10,17 @@ function Cart() {
     cartTotal,
     removeFromCart,
     updateQuantity,
+    loading,
+    error,
   } = useCart()
+
+  if (loading) {
+    return (
+      <main className="cart-page">
+        <p>Loading cart...</p>
+      </main>
+    )
+  }
 
   if (cartItems.length === 0) {
     return (
@@ -20,6 +29,12 @@ function Cart() {
           <i className="bi bi-cart3"></i>
           <h1>Your cart is empty</h1>
           <p>Looks like you haven't added anything yet.</p>
+
+          {error && (
+            <p className="checkout-error" role="alert">
+              {error}
+            </p>
+          )}
 
           <Link to="/products" className="cart-continue-button">
             Browse Products
@@ -36,6 +51,12 @@ function Cart() {
         <p>{cartCount} item(s) in your cart</p>
       </header>
 
+      {error && (
+        <p className="checkout-error" role="alert">
+          {error}
+        </p>
+      )}
+
       <div className="cart-layout">
         <section className="cart-items">
           {cartItems.map((item) => (
@@ -44,7 +65,7 @@ function Cart() {
 
               <div className="cart-item-info">
                 <h3>{item.name}</h3>
-                <p>{item.category}</p>
+                {item.category && <p>{item.category}</p>}
 
                 <strong>
                   ₱{item.price.toLocaleString("en-PH")}

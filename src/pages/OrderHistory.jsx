@@ -1,23 +1,18 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { getOrders } from "../api/orders.js"
 
 function OrderHistory() {
   const navigate = useNavigate()
   const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
   useEffect(() => {
-    try {
-      const savedOrders = JSON.parse(
-        localStorage.getItem("orderHistory") || "[]"
-      )
-
-      setOrders(
-        Array.isArray(savedOrders) ? savedOrders : []
-      )
-    } catch (error) {
-      console.error("Failed to load order history:", error)
-      setOrders([])
-    }
+    getOrders()
+      .then((data) => setOrders(Array.isArray(data) ? data : []))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false))
   }, [])
 
   const formatPrice = (price) =>
@@ -39,6 +34,27 @@ function OrderHistory() {
       dateStyle: "medium",
       timeStyle: "short",
     })
+  }
+
+  const formatStatus = (status) =>
+    status ? status.charAt(0).toUpperCase() + status.slice(1) : "Pending"
+
+  if (loading) {
+    return (
+      <main className="order-history-page container">
+        <p>Loading orders...</p>
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className="order-history-page container">
+        <p className="checkout-error" role="alert">
+          {error}
+        </p>
+      </main>
+    )
   }
 
   if (orders.length === 0) {
@@ -85,7 +101,7 @@ function OrderHistory() {
         {orders.map((order) => (
           <article
             className="history-order-card"
-            key={order.orderNumber}
+            key={order.id}
           >
             <div className="history-order-header">
               <div>
@@ -93,26 +109,26 @@ function OrderHistory() {
                   Order Number
                 </span>
 
-                <h2>{order.orderNumber}</h2>
+                <h2>{order.order_number}</h2>
 
                 <p className="history-date">
-                  {formatDate(order.createdAt)}
+                  {formatDate(order.created_at)}
                 </p>
               </div>
 
               <span className="history-status">
-                {order.status || "Pending"}
+                {formatStatus(order.status)}
               </span>
             </div>
 
             <div className="history-order-items">
-              {(order.items || []).map((item, index) => (
+              {order.items.map((item, index) => (
                 <div
                   className="history-order-item"
-                  key={`${order.orderNumber}-${item.id}-${index}`}
+                  key={`${order.id}-${item.product_id}-${index}`}
                 >
                   <div>
-                    <strong>{item.title}</strong>
+                    <strong>{item.name}</strong>
 
                     <p>
                       Quantity: {item.quantity}
@@ -120,11 +136,7 @@ function OrderHistory() {
                   </div>
 
                   <span>
-                    ₱
-                    {formatPrice(
-                      Number(item.price) *
-                        Number(item.quantity)
-                    )}
+                    ₱{formatPrice(item.subtotal)}
                   </span>
                 </div>
               ))}
@@ -136,9 +148,7 @@ function OrderHistory() {
                   Payment Method
                 </span>
 
-                <strong>
-                  {order.paymentMethod || "COD"}
-                </strong>
+                <strong>COD</strong>
               </div>
 
               <div className="history-total">
@@ -147,7 +157,7 @@ function OrderHistory() {
                 </span>
 
                 <strong>
-                  ₱{formatPrice(order.total)}
+                  ₱{formatPrice(order.total_amount)}
                 </strong>
               </div>
             </div>
@@ -155,11 +165,7 @@ function OrderHistory() {
             <button
               className="history-details-button"
               onClick={() =>
-                navigate(
-                  `/order-confirmation?order=${encodeURIComponent(
-                    order.orderNumber
-                  )}`
-                )
+                navigate(`/order-confirmation?order=${order.id}`)
               }
             >
               View Order Details

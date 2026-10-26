@@ -1,7 +1,15 @@
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
+import { useAuth } from "../context/AuthContext.jsx"
 
 function Navbar() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
+
+  const handleLogout = async () => {
+    await logout()
+    navigate("/")
+  }
 
   const isActive = (path) => {
     if (path === "/") {
@@ -53,6 +61,28 @@ function Navbar() {
             <span>{item.label}</span>
           </Link>
         ))}
+      </div>
+
+      <div className="navbar-auth">
+        {user ? (
+          <>
+            <span className="navbar-user">
+              <i className="bi bi-person-circle"></i> {user.name}
+            </span>
+            <button
+              type="button"
+              className="nav-logout"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <Link to="/login" className="nav-link">
+            <i className="bi bi-box-arrow-in-right"></i>
+            <span>Login</span>
+          </Link>
+        )}
       </div>
     </nav>
   )
