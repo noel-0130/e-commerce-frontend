@@ -38,7 +38,7 @@ function Products() {
 
         {error && (
           <div className="error-message">
-            <p>⚠️ Failed to load products.</p>
+            <p>Failed to load products.</p>
             <p>{error}</p>
 
             <button onClick={() => window.location.reload()}>

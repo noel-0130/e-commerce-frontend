@@ -1,8 +1,26 @@
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import products from "../data/products.json"
+import { getProduct } from "../api/product.js"
 import ProductCard from "../components/ProductCard.jsx"
 
 function Home() {
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+
+  useEffect(() => {
+    getProduct()
+      .then((data) => {
+        setProducts(data)
+      })
+      .catch((error) => {
+        setError(error.message)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }, [])
+
   const featuredProducts = products.slice(0, 3)
 
   return (
@@ -12,41 +30,37 @@ function Home() {
       <section className="hero-section">
         <div className="hero-content">
           <span className="hero-badge">
-            <i className="bi bi-stars"></i>
-            QUALITY SECOND-HAND LAPTOPS
+            <i className="bi bi-pc-display-horizontal"></i>
+            LAPTOPS & PC COMPONENTS
           </span>
 
           <h1>
-            Find Your Next
+            Power Up Your
             <br />
-            <span>Affordable Laptop.</span>
+            <span>Next Build.</span>
           </h1>
 
           <p>
-            Tested and reliable second-hand laptops at great prices.
-            Everything you need, all in one place.
+            Discover laptops, processors, graphics cards, storage,
+            and essential PC components for work, gaming, and everyday use.
           </p>
 
           <div className="hero-actions">
             <Link to="/products" className="hero-button primary">
-              Shop Now
-              <i className="bi bi-arrow-right"></i>
-            </Link>
-
-            <Link to="/products" className="hero-button secondary">
               Explore Products
+              <i className="bi bi-arrow-right"></i>
             </Link>
           </div>
 
           <div className="hero-trust">
             <div>
-              <i className="bi bi-shield-check"></i>
-              <span>Quality Products</span>
+              <i className="bi bi-cpu"></i>
+              <span>PC Components</span>
             </div>
 
             <div>
-              <i className="bi bi-tag"></i>
-              <span>Great Prices</span>
+              <i className="bi bi-laptop"></i>
+              <span>Laptops & Accessories</span>
             </div>
           </div>
         </div>
@@ -56,60 +70,60 @@ function Home() {
 
           <div className="hero-product-card">
             <div className="hero-product-icon">
-              <i className="bi bi-bag-heart"></i>
+              <i className="bi bi-motherboard"></i>
             </div>
 
-            <span>YOUR NEXT FAVORITE</span>
-            <h3>Smart Shopping.</h3>
-            <p>Simple. Convenient. Everyday.</p>
+            <span>BUILD YOUR SETUP</span>
+            <h3>Performance Starts Here.</h3>
+            <p>Choose your parts. Build your future.</p>
           </div>
 
           <div className="hero-floating-icon icon-one">
-            <i className="bi bi-headphones"></i>
+            <i className="bi bi-cpu"></i>
           </div>
 
           <div className="hero-floating-icon icon-two">
-            <i className="bi bi-keyboard"></i>
+            <i className="bi bi-gpu-card"></i>
           </div>
 
           <div className="hero-floating-icon icon-three">
-            <i className="bi bi-controller"></i>
+            <i className="bi bi-device-ssd"></i>
           </div>
         </div>
       </section>
 
-      {/* Benefits Section */}
+      {/* Product Categories */}
       <section className="benefits-section">
         <div className="benefit-item">
           <div className="benefit-icon">
-            <i className="bi bi-box-seam"></i>
+            <i className="bi bi-laptop"></i>
           </div>
 
           <div>
-            <h3>Quality Selection</h3>
-            <p>Products chosen for your needs.</p>
+            <h3>Laptops</h3>
+            <p>Devices for work, study, and play.</p>
           </div>
         </div>
 
         <div className="benefit-item">
           <div className="benefit-icon">
-            <i className="bi bi-wallet2"></i>
+            <i className="bi bi-cpu"></i>
           </div>
 
           <div>
-            <h3>Great Value</h3>
-            <p>Find products at great prices.</p>
+            <h3>PC Components</h3>
+            <p>Processors, graphics cards, and more.</p>
           </div>
         </div>
 
         <div className="benefit-item">
           <div className="benefit-icon">
-            <i className="bi bi-heart"></i>
+            <i className="bi bi-device-ssd"></i>
           </div>
 
           <div>
-            <h3>Easy Shopping</h3>
-            <p>A simple and convenient experience.</p>
+            <h3>Storage & Accessories</h3>
+            <p>Upgrade your setup your way.</p>
           </div>
         </div>
       </section>
@@ -118,9 +132,15 @@ function Home() {
       <section className="featured-section">
         <div className="featured-header">
           <div>
-            <span className="section-eyebrow">HANDPICKED FOR YOU</span>
+            <span className="section-eyebrow">
+              EXPLORE OUR COLLECTION
+            </span>
+
             <h2>Featured Products</h2>
-            <p>Check out some of our favorite picks.</p>
+
+            <p>
+              Discover components and devices for your next setup.
+            </p>
           </div>
 
           <Link to="/products" className="view-all-link">
@@ -129,25 +149,44 @@ function Home() {
           </Link>
         </div>
 
-        <div className="products-grid">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {loading && (
+          <p>Loading featured products...</p>
+        )}
+
+        {error && (
+          <div className="error-message">
+            <p>Unable to load featured products.</p>
+            <p>{error}</p>
+          </div>
+        )}
+
+        {!loading && !error && featuredProducts.length === 0 && (
+          <p>No products available at the moment.</p>
+        )}
+
+        {!loading && !error && featuredProducts.length > 0 && (
+          <div className="products-grid">
+            {featuredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* Bottom Call to Action */}
+      {/* Bottom Promotional Section */}
       <section className="home-cta">
         <div>
-          <span>READY TO EXPLORE?</span>
-          <h2>Your next great find is waiting.</h2>
-          <p>Browse our collection and discover something you love.</p>
-        </div>
+          <span>BUILT FOR YOUR NEXT UPGRADE</span>
 
-        <Link to="/products" className="cta-button">
-          Browse Products
-          <i className="bi bi-arrow-right"></i>
-        </Link>
+          <h2>Better hardware. Better possibilities.</h2>
+
+          <p>
+            Find the right components and accessories for your setup.
+          </p>
+        </div>
       </section>
 
     </main>
