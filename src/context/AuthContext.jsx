@@ -22,6 +22,23 @@ export function AuthProvider({ children }) {
     setUser(data.user)
   }
 
+  // NOTE: these two need matching backend endpoints.
+  async function loginWithEmail({ email, password }) {
+    const data = await apiRequest("/api/v1/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    })
+    setUser(data.user)
+  }
+
+  async function registerWithEmail({ name, email, password }) {
+    const data = await apiRequest("/api/v1/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ name, email, password }),
+    })
+    setUser(data.user)
+  }
+
   async function logout() {
     try {
       await apiRequest("/api/v1/auth/logout", { method: "DELETE" })
@@ -31,7 +48,16 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithGoogle, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        loginWithGoogle,
+        loginWithEmail,
+        registerWithEmail,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

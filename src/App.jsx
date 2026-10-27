@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
 import { AuthProvider } from "./context/AuthContext.jsx"
 import { CartProvider } from "./context/CartContext.jsx"
 import Navbar from "./components/Navbar.jsx"
@@ -12,12 +12,21 @@ import Checkout from "./pages/Checkout.jsx"
 import OrderConfirmation from "./pages/OrderConfirmation"
 import OrderHistory from "./pages/OrderHistory"
 
+// Hide the navbar on full-page screens like /login
+const HIDE_NAVBAR_PATHS = ["/login"]
+
+function AppNavbar() {
+  const { pathname } = useLocation()
+  if (HIDE_NAVBAR_PATHS.includes(pathname)) return null
+  return <Navbar />
+}
+
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
         <BrowserRouter>
-          <Navbar />
+          <AppNavbar />
 
           <Routes>
             <Route path="/" element={<Home />} />
