@@ -25,7 +25,7 @@ function Products() {
       <section className="products-header">
         <span className="products-eyebrow">OUR COLLECTION</span>
         <h1>Discover Our Products</h1>
-        <p>Find the perfect products for your everyday needs.</p>
+        <p>Browse laptops, components and accessories for your PC.</p>
       </section>
 
       <section className="products-section">
