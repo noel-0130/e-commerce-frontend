@@ -19,6 +19,7 @@ export async function apiRequest(path, options = {}) {
       data?.error || data?.errors?.join(", ") || "Request failed"
     )
     error.status = response.status
+    error.code = data?.code
     throw error
   }
 

@@ -11,6 +11,9 @@ import Cart from "./pages/Cart.jsx"
 import Checkout from "./pages/Checkout.jsx"
 import OrderConfirmation from "./pages/OrderConfirmation"
 import OrderHistory from "./pages/OrderHistory"
+import EmailVerified from "./pages/EmailVerified.jsx"
+import VerifyFailed from "./pages/VerifyFailed.jsx"
+import LegalPage from "./pages/LegalPage.jsx"
 
 // Hide the navbar on full-page screens like /login
 const HIDE_NAVBAR_PATHS = ["/login"]
@@ -31,6 +34,8 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/email-verified" element={<EmailVerified />} /> 
+            <Route path="/verify-failed" element={<VerifyFailed />} /> 
             <Route path="/products" element={<Products />} />
             <Route path="/products/:id" element={<ProductDetails />} />
 
@@ -50,6 +55,8 @@ function App() {
               path="/order-history"
               element={<ProtectedRoute><OrderHistory /></ProtectedRoute>}
             />
+            <Route path="/privacy" element={<LegalPage type="privacy" />} />
+            <Route path="/terms" element={<LegalPage type="terms" />} />
           </Routes>
         </BrowserRouter>
       </CartProvider>

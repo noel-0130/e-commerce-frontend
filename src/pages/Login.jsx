@@ -85,7 +85,7 @@ function PasswordField({
 }
 
 function Login() {
-  const { user, loading, loginWithGoogle, loginWithEmail, registerWithEmail } =
+  const { user, loading, loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification } =
     useAuth()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -100,6 +100,8 @@ function Login() {
   const [errors, setErrors] = useState({})
   const [formError, setFormError] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const [pendingEmail, setPendingEmail] = useState("")
+  const [resendStatus, setResendStatus] = useState("")
 
   const from = location.state?.from?.pathname || "/"
   const isSignup = mode === "signup"
@@ -139,6 +141,7 @@ function Login() {
           email: values.email.trim(),
           password: values.password,
         })
+        setPendingEmail(values.email.trim())
       } else {
         await loginWithEmail({
           email: values.email.trim(),
@@ -146,12 +149,15 @@ function Login() {
         })
       }
     } catch (err) {
-      setFormError(err.message || "Something went wrong. Please try again.")
+      if (err.code === "email_not_verified") {
+        setPendingEmail(values.email.trim())
+      } else {
+        setFormError(err.message || "Something went wrong. Please try again.")
+      }
     } finally {
       setSubmitting(false)
     }
   }
-
   const strength = passwordStrength(values.password)
 
   return (

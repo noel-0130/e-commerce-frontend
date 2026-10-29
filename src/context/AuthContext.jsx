@@ -36,7 +36,13 @@ export function AuthProvider({ children }) {
       method: "POST",
       body: JSON.stringify({ name, email, password }),
     })
-    setUser(data.user)
+  }
+
+  async function resendVerification(email) {
+    return apiRequest("/api/v1/auth/resend_verification", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    })
   }
 
   async function logout() {
@@ -55,6 +61,7 @@ export function AuthProvider({ children }) {
         loginWithGoogle,
         loginWithEmail,
         registerWithEmail,
+        resendVerification,
         logout,
       }}
     >
