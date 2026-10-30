@@ -1,71 +1,85 @@
 import { useEffect, useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { useAuth } from "../context/AuthContext.jsx"
 
 function EmailVerified() {
   const { refreshUser } = useAuth()
-  const navigate = useNavigate()
+
   const [checking, setChecking] = useState(true)
-  const [error, setError] = useState(false)
+  const [verified, setVerified] = useState(false)
 
   useEffect(() => {
     let active = true
 
-    async function checkAuthentication() {
+    async function checkVerification() {
       try {
         const user = await refreshUser()
 
         if (!active) return
 
-        if (user) {
-          window.location.replace("/products")
-        } else {
-          setError(true)
+        if (user?.email_verified_at) {
+          setVerified(true)
         }
-      } catch {
-        if (active) setError(true)
+      } catch (error) {
+        console.error(error)
       } finally {
         if (active) setChecking(false)
       }
     }
 
-    checkAuthentication()
+    checkVerification()
 
     return () => {
       active = false
     }
-  }, [refreshUser, navigate])
+  }, [refreshUser])
 
   if (checking) {
     return (
       <main className="auth-page">
         <section className="auth-card">
-          <h1>Email verified!</h1>
-          <p>Checking your account...</p>
+          <h1>Checking Email Verification...</h1>
+          <p>Please wait.</p>
         </section>
       </main>
     )
   }
 
-  if (error) {
+  if (!verified) {
     return (
       <main className="auth-page">
         <section className="auth-card">
-          <h1>Email verified!</h1>
+          <h1>Email Not Yet Verified</h1>
+
           <p>
-            Your email is verified, but automatic login
-            was unsuccessful. Please sign in.
+            Please check your inbox and click the
+            verification link sent to your email.
           </p>
 
           <Link to="/login" className="auth-submit">
-            Sign in
+            Back to Login
           </Link>
         </section>
       </main>
     )
   }
 
-  return null
+  return (
+    <main className="auth-page">
+      <section className="auth-card">
+        <h1>🎉 Email Verified Successfully!</h1>
+
+        <p>
+          Your email has been successfully verified.
+          Your account is now ready.
+        </p>
+
+        <Link to="/products" className="auth-submit">
+          Continue to Shopping
+        </Link>
+      </section>
+    </main>
+  )
 }
 
 export default EmailVerified
