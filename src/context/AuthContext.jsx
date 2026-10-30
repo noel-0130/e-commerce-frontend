@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback
+} from "react"
 import { apiRequest } from "../api/client.js"
 
 const AuthContext = createContext()
@@ -7,13 +13,21 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    apiRequest("/api/v1/auth/me")
-      .then((data) => setUser(data.user))
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false))
+  const refreshUser = useCallback(async () => {
+    try {
+      const data = await apiRequest("/api/v1/auth/me")
+      setUser(data.user)
+      return data.user
+    } catch (error) {
+      setUser(null)
+      return null
+    }
   }, [])
 
+  useEffect(() => {
+    refreshUser().finally(() => setLoading(false))
+  }, [refreshUser])
+  
   async function loginWithGoogle(credential) {
     const data = await apiRequest("/api/v1/auth/google", {
       method: "POST",
@@ -58,6 +72,7 @@ export function AuthProvider({ children }) {
       value={{
         user,
         loading,
+        refreshUser,
         loginWithGoogle,
         loginWithEmail,
         registerWithEmail,

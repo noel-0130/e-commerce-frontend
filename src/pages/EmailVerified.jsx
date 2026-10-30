@@ -1,27 +1,71 @@
-import { Link } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { useNavigate, Link } from "react-router-dom"
+import { useAuth } from "../context/AuthContext.jsx"
 
 function EmailVerified() {
-  return (
-    <main className="auth-page">
-      <section className="auth-card">
-        <div className="auth-brand">
-          <span className="auth-logo" aria-hidden="true">
-            <i className="bi bi-patch-check-fill" />
-          </span>
-          <span className="auth-brand-name">Noel Shop</span>
-        </div>
+  const { refreshUser } = useAuth()
+  const navigate = useNavigate()
+  const [checking, setChecking] = useState(true)
+  const [error, setError] = useState(false)
 
-        <h1>Email verified!</h1>
-        <p className="auth-subtitle">
-          Tapos na ang signup mo. Naka-login ka na at pwede ka nang mamili.
-        </p>
+  useEffect(() => {
+    let active = true
 
-        <Link to="/products" className="auth-submit">
-          Start shopping
-        </Link>
-      </section>
-    </main>
-  )
+    async function checkAuthentication() {
+      try {
+        const user = await refreshUser()
+
+        if (!active) return
+
+        if (user) {
+          navigate("/products", { replace: true })
+        } else {
+          setError(true)
+        }
+      } catch {
+        if (active) setError(true)
+      } finally {
+        if (active) setChecking(false)
+      }
+    }
+
+    checkAuthentication()
+
+    return () => {
+      active = false
+    }
+  }, [refreshUser, navigate])
+
+  if (checking) {
+    return (
+      <main className="auth-page">
+        <section className="auth-card">
+          <h1>Email verified!</h1>
+          <p>Checking your account...</p>
+        </section>
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className="auth-page">
+        <section className="auth-card">
+          <h1>Email verified!</h1>
+          <p>
+            Your email is verified, but automatic login
+            was unsuccessful. Please sign in.
+          </p>
+
+          <Link to="/login" className="auth-submit">
+            Sign in
+          </Link>
+        </section>
+      </main>
+    )
+  }
+
+  return null
 }
 
 export default EmailVerified
