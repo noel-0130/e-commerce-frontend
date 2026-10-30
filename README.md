@@ -1,49 +1,117 @@
-# TechHub
+# TechHub — E-commerce Frontend
 
-E-commerce site for laptops and PC components.
+Frontend application for TechHub, an e-commerce platform built with React and Vite.
 
-**Live demo:** https://noel-llosa.vercel.app/
-**Backend repo:** https://github.com/noel-0130/e-commerce-backend.git
+🌐 **Live Website:** https://noel-llosa.vercel.app/  
+📦 **Backend Repository:** https://github.com/noel-0130/e-commerce-backend
 
 ## Features
-- Google login
+
+- User registration and login
+- Google OAuth authentication
+- Email verification
+- Resend verification email
+- Session-based authentication
+- Product browsing
 - Shopping cart
 - Checkout
+- Cash on Delivery (COD)
 - Order history
+- Privacy Policy and Terms of Service
 
 ## Tech Stack
-- **Frontend:** React + Vite (single-page app), deployed on Vercel
-- **Backend:** Rails API (separate repo)
-- **Auth:** Google OAuth
 
-## Run Locally
-1. Clone the repo:
-   `git clone https://github.com/noel-0130/e-commerce-frontend.git`
-2. Install dependencies:
-   `npm install`
-3. Create a `.env` file in the project root and add the variables below
-4. Start the dev server:
-   `npm run dev`
+- React 19
+- Vite 8
+- React Router 7
+- Tailwind CSS 4
+- Bootstrap Icons
+- Google OAuth
+- Ruby on Rails API
+- PostgreSQL
 
-Make sure the Rails API is running too (see the backend README).
+## Installation
 
-## Environment Variables
-Add these to your `.env` file:
+### 1. Clone the Repository
 
-| Name | Description | Example |
-|------|-------------|---------|
-| `VITE_API_URL` | URL of the Rails API | `http://localhost:3000` |
-| `VITE_GOOGLE_CLIENT_ID` | Google OAuth client ID | `your-client-id` |
+```bash
+git clone https://github.com/noel-0130/e-commerce-frontend.git
+cd e-commerce-frontend
+```
 
-## Decisions
-- **Separate Rails API:** [why, e.g. I'm comfortable with Rails and wanted the backend independent from the UI]
-- **Google login:** [why, e.g. faster signup and no passwords to store]
-- **Single-page app (CSR):** [why, e.g. simple to start with; I know SEO is a trade-off]
+### 2. Install Dependencies
 
-## Roadmap
-- [ ] Quantity buttons (+ / -) in the cart
-- [ ] Email and password login (in addition to Google), with email verification before first login
-- [ ] Admin module:
-  - [ ] Add and manage products
-  - [ ] Manage users
-  - [ ] Update order status (e.g. pending, paid, shipped, completed)
+```bash
+npm install
+```
+
+### 3. Configure Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+VITE_API_URL=http://localhost:3000
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+```
+
+### 4. Start Development Server
+
+```bash
+npm run dev
+```
+
+### 5. Build for Production
+
+```bash
+npm run build
+```
+
+## Project Structure
+
+```text
+src/
+├── api/
+├── assets/
+├── components/
+├── context/
+├── data/
+├── pages/
+└── utils/
+```
+
+## Backend Configuration
+
+This frontend communicates with the TechHub backend API.
+
+Make sure the backend is running and that the API URL is correctly configured.
+
+Backend repository:
+
+https://github.com/noel-0130/e-commerce-backend
+
+## Deployment
+
+The frontend is deployed using Vercel.
+
+Production URL:
+
+https://noel-llosa.vercel.app/
+
+Configure the required environment variables in your Vercel project settings.
+
+## Future Plans
+
+The following features are planned for future development:
+
+- [ ] Online payment integration (GCash, Maya, and other payment providers)
+- [ ] Product reviews and ratings
+- [ ] Wishlist functionality
+- [ ] Improved product search, filtering, and sorting
+- [ ] Order tracking
+- [ ] Discount codes and promotional features
+- [ ] Improved mobile user experience
+- [ ] Performance and accessibility improvements
+
+## Author
+
+Noel A. Llosa
