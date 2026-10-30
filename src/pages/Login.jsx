@@ -323,8 +323,8 @@ function Login() {
         </p>
 
         <p className="auth-legal">
-          By continuing, you agree to our <Link to="/">Terms</Link> and{" "}
-          <Link to="/">Privacy Policy</Link>.
+          By continuing, you agree to our <Link to="/terms">Terms</Link> and{" "}
+          <Link to="/privacy">Privacy Policy</Link>.
         </p>
       </section>
     </main>
