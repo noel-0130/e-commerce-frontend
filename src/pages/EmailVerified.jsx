@@ -18,7 +18,7 @@ function EmailVerified() {
         if (!active) return
 
         if (user) {
-          navigate("/products", { replace: true })
+          window.location.replace("/products")
         } else {
           setError(true)
         }
