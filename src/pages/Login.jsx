@@ -85,8 +85,14 @@ function PasswordField({
 }
 
 function Login() {
-  const { user, loading, loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification } =
-    useAuth()
+  const {
+    user,
+    loading,
+    loginWithGoogle,
+    loginWithEmail,
+    registerWithEmail,
+    resendVerification,
+  } = useAuth()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -158,7 +164,74 @@ function Login() {
       setSubmitting(false)
     }
   }
+
+  async function handleResend() {
+    setResendStatus("sending")
+    try {
+      await resendVerification(pendingEmail)
+      setResendStatus("sent")
+    } catch (err) {
+      setResendStatus(err.status === 429 ? "limit" : "error")
+    }
+  }
+
   const strength = passwordStrength(values.password)
+
+  if (pendingEmail) {
+    return (
+      <main className="auth-page">
+        <section className="auth-card" aria-labelledby="verify-title">
+          <div className="auth-brand">
+            <span className="auth-logo" aria-hidden="true">
+              <i className="bi bi-envelope-check-fill" />
+            </span>
+            <span className="auth-brand-name">Noel Shop</span>
+          </div>
+
+          <h1 id="verify-title">Check your email</h1>
+          <p className="auth-subtitle">
+            We sent a verification link to <strong>{pendingEmail}</strong>.
+            Click it to activate your account.
+          </p>
+
+          {resendStatus === "sent" && (
+            <p role="status">Sent again. Check your inbox (and spam folder).</p>
+          )}
+          {resendStatus === "limit" && (
+            <p className="auth-form-error" role="alert">
+              Too many requests. Please try again later.
+            </p>
+          )}
+          {resendStatus === "error" && (
+            <p className="auth-form-error" role="alert">
+              Something went wrong. Please try again.
+            </p>
+          )}
+
+          <button
+            type="button"
+            className="auth-submit"
+            onClick={handleResend}
+            disabled={resendStatus === "sending"}
+          >
+            {resendStatus === "sending" ? "Sending..." : "Resend email"}
+          </button>
+
+          <p className="auth-switch">
+            <button
+              type="button"
+              onClick={() => {
+                setPendingEmail("")
+                setResendStatus("")
+              }}
+            >
+              Back to sign in
+            </button>
+          </p>
+        </section>
+      </main>
+    )
+  }
 
   return (
     <main className="auth-page">
