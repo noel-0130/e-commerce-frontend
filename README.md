@@ -47,12 +47,37 @@ npm install
 
 ### 3. Configure Environment Variables
 
-Create a `.env` file in the project root:
+Vite loads different files depending on the mode:
+
+| File | Used by | Purpose |
+| --- | --- | --- |
+| `.env` | all modes | Shared values |
+| `.env.development` | `npm run dev` | Local development values |
+| `.env.production` | `npm run build` | Production values |
+
+Copy `.env.example` and fill in the values for each environment:
+
+```bash
+cp .env.example .env.development
+cp .env.example .env.production
+```
+
+`.env.development` example:
 
 ```env
 VITE_API_URL=http://localhost:3000
 VITE_GOOGLE_CLIENT_ID=your_google_client_id
 ```
+
+`.env.production` example:
+
+```env
+VITE_API_URL=https://your-production-api.example.com
+VITE_GOOGLE_CLIENT_ID=your_production_google_client_id
+```
+
+Only variables prefixed with `VITE_` are exposed to the browser. On Vercel, the
+values set in Project Settings → Environment Variables override these files.
 
 ### 4. Start Development Server
 
