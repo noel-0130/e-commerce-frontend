@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { useAuth } from "./AuthContext.jsx"
 import {
   createCart,
@@ -8,7 +8,6 @@ import {
   removeCartItem,
   checkoutCart,
 } from "../api/cart.js"
-import { productImage } from "../utils/product.js"
 
 const CartContext = createContext()
 
@@ -20,7 +19,7 @@ function mapItem(item) {
     price: Number(item.price),
     stock: item.stock,
     quantity: item.quantity,
-    image: productImage({ name: item.name }),
+    image: item.image_url || `https://placehold.co/300x300?text=${encodeURIComponent(item.name || "Product")}`,
   }
 }
 
@@ -30,52 +29,46 @@ export function CartProvider({ children }) {
 
   const [cart, setCart] = useState(null)
   const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  useEffect(() => {
-    if (!userId) return
+  const ensureCart = useCallback(async () => {
+    if (cart) return cart
+    if (!userId) throw new Error("Not authenticated")
 
-    let cancelled = false
-
-    async function init() {
-      setLoading(true)
-      try {
-        const newCart = await createCart()
-        const data = await getCart(newCart.id, newCart.token)
-        if (cancelled) return
-        setCart(newCart)
-        setItems(data.items.map(mapItem))
-        setError("")
-      } catch (e) {
-        if (!cancelled) setError(e.message)
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
+    setLoading(true)
+    setError("")
+    try {
+      const newCart = await createCart()
+      const data = await getCart(newCart.id, newCart.token)
+      setCart(newCart)
+      setItems(data.items.map(mapItem))
+      return newCart
+    } catch (e) {
+      setError(e.message)
+      throw e
+    } finally {
+      setLoading(false)
     }
-
-    init()
-
-    return () => {
-      cancelled = true
-    }
-  }, [userId])
-
-  // Kapag naka-logout, walang laman ang cart
-  const cartItems = userId ? items : []
+  }, [cart, userId])
 
   async function reload() {
+    if (!cart) return
     const data = await getCart(cart.id, cart.token)
     setItems(data.items.map(mapItem))
   }
 
+  // Kapag naka-logout, walang laman ang cart
+  const cartItems = userId ? items : []
+
   async function run(action) {
-    if (!userId || !cart) {
+    if (!userId) {
       setError("Please log in first.")
       return false
     }
     try {
       setError("")
+      await ensureCart()
       await action()
       return true
     } catch (e) {
@@ -127,9 +120,10 @@ export function CartProvider({ children }) {
     })
 
   async function checkout(customer) {
-    if (!cart) throw new Error("Please log in first.")
+    await ensureCart()
     const result = await checkoutCart(cart.id, cart.token, customer)
     setItems([])
+    setCart(null)
     return result
   }
 
